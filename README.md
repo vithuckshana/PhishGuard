@@ -7,13 +7,23 @@ PhishGuard is a machine learning-based cybersecurity tool that analyzes URL char
 
 ## 🖥️ Demo
 
+## 🖥️ Demo
+
+**Dashboard:**
+
+![Dashboard](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/dashboard.png)
+
 **Legitimate URL:**
 
-![Legitimate Result](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/legitimate.png)
+![Legitimate Result 1](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/legitimate%20eg1.png)
+
+![Legitimate Result 2](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/legitimate%20eg2.png)
 
 **Phishing URL:**
 
-![Phishing Result](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/phishing.png)
+![Phishing Result 1](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/phishing%20eg1.png)
+
+![Phishing Result 2](https://raw.githubusercontent.com/vithuckshana/PhishGuard/main/screenshots/phishing%20eg2.png)
 
 ## 🔍 How It Works
 
