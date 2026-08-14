@@ -251,6 +251,53 @@
     <table id="featuresTable"></table>
 </div>
 
+<!-- Stats card -->
+<div class="card" id="stats">
+    <p class="features-title">Dashboard</p>
+    <div class="scores" style="margin-top:16px">
+        <div class="score-box">
+            <div class="value" id="statTotal">{{ stats.total }}</div>
+            <div class="label">Total Scans</div>
+        </div>
+        <div class="score-box">
+            <div class="value" style="color:#00e676">{{ stats.legitimate }}</div>
+            <div class="label">Legitimate</div>
+        </div>
+        <div class="score-box">
+            <div class="value" style="color:#ff5252">{{ stats.phishing }}</div>
+            <div class="label">Phishing</div>
+        </div>
+    </div>
+</div>
+
+<!-- Scan history card -->
+{% if recent_scans %}
+<div class="card">
+    <p class="features-title" style="margin-bottom:12px">Recent Scans</p>
+    <table>
+        <tr>
+            <td style="color:#555;font-size:0.75rem">URL</td>
+            <td style="color:#555;font-size:0.75rem;text-align:right">Result</td>
+            <td style="color:#555;font-size:0.75rem;text-align:right">Risk</td>
+            <td style="color:#555;font-size:0.75rem;text-align:right">Time</td>
+        </tr>
+        {% for scan in recent_scans %}
+        <tr>
+            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.8rem">
+                {{ scan.url }}
+            </td>
+            <td style="text-align:right;font-size:0.8rem;color:{{ '#00e676' if scan.prediction == 'legitimate' else '#ff5252' }}">
+                {{ scan.prediction }}
+            </td>
+            <td style="text-align:right;font-size:0.8rem">{{ scan.risk_score }}%</td>
+            <td style="text-align:right;font-size:0.8rem;color:#555">{{ scan.scanned_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+
 <footer>
     PhishGuard uses machine learning to detect phishing URLs.
     Results are for informational purposes only.
