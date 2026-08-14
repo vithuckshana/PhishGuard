@@ -42,15 +42,16 @@ def count_special_chars(url: str) -> int:
 
 def count_subdomains(url: str) -> int:
     """
-    Counts the number of subdomains using tldextract, which correctly
-    handles multi-part TLDs like .co.uk (unlike naive string splitting).
-
-    Example: "login.secure.example.co.uk" -> subdomain = "login.secure" -> 2
+    Counts the number of subdomains using tldextract.
+    'www' is excluded since it's a standard prefix and not a
+    security signal — counting it penalizes normal URLs unfairly.
     """
     extracted = tldextract.extract(url)
     if not extracted.subdomain:
         return 0
-    return len(extracted.subdomain.split("."))
+    # Remove 'www' from subdomain parts before counting
+    parts = [p for p in extracted.subdomain.split(".") if p.lower() != "www"]
+    return len(parts)
 
 
 def calculate_entropy(url: str) -> float:

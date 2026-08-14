@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PhishGuard — AI Phishing Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #00d4ff;
+        }
+
+        header p {
+            color: #888;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: #1a1d27;
+            border: 1px solid #2a2d3e;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 680px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid #2a2d3e;
+            background: #0f1117;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #00d4ff;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #00d4ff;
+            color: #0f1117;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover { background: #00b8d9; }
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        /* Result card */
+        #result { display: none; }
+
+        .verdict {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .verdict.legitimate { color: #00e676; }
+        .verdict.phishing   { color: #ff5252; }
+
+        .scores {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .score-box {
+            flex: 1;
+            background: #0f1117;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .score-box .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #00d4ff;
+        }
+
+        .score-box .label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Risk bar */
+        .risk-bar-wrap {
+            margin-bottom: 24px;
+        }
+
+        .risk-bar-wrap p {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-bar-bg {
+            background: #0f1117;
+            border-radius: 99px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.6s ease;
+        }
+
+        /* Features table */
+        .features-title {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #2a2d3e;
+        }
+
+        td:first-child { color: #aaa; }
+        td:last-child  { text-align: right; font-weight: 600; color: #e0e0e0; }
+
+        /* Loading spinner */
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #2a2d3e;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        footer {
+            margin-top: 40px;
+            color: #444;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🛡️ PHISHGUARD</h1>
+    <p>AI-Powered Phishing Website Detection</p>
+</header>
+
+<!-- Scanner card -->
+<div class="card">
+    <div class="input-group">
+        <input
+            type="text"
+            id="urlInput"
+            placeholder="Enter a URL to scan — e.g. https://example.com"
+        />
+        <button id="scanBtn" onclick="scanURL()">Scan</button>
+    </div>
+</div>
+
+<!-- Loading -->
+<div class="card" id="loading">
+    <div class="spinner"></div>
+    <p>Analyzing URL...</p>
+</div>
+
+<!-- Result card -->
+<div class="card" id="result">
+    <div class="verdict" id="verdict"></div>
+
+    <div class="scores">
+        <div class="score-box">
+            <div class="value" id="riskScore">—</div>
+            <div class="label">Risk Score</div>
+        </div>
+        <div class="score-box">
+            <div class="value" id="confidence">—</div>
+            <div class="label">Confidence</div>
+        </div>
+    </div>
+
+    <div class="risk-bar-wrap">
+        <p>Risk Level</p>
+        <div class="risk-bar-bg">
+            <div class="risk-bar-fill" id="riskBar"></div>
+        </div>
+    </div>
+
+    <p class="features-title">URL Features Detected</p>
+    <table id="featuresTable"></table>
+</div>
+
+<footer>
+    PhishGuard uses machine learning to detect phishing URLs.
+    Results are for informational purposes only.
+</footer>
+
+<script>
+    const FEATURE_LABELS = {
+        url_length:           "URL Length",
+        num_dots:             "Number of Dots",
+        num_hyphens:          "Number of Hyphens",
+        has_ip:               "Contains IP Address",
+        has_https:            "Uses HTTPS",
+        num_special_chars:    "Special Characters",
+        num_subdomains:       "Subdomains",
+        url_entropy:          "URL Entropy",
+        has_suspicious_words: "Suspicious Keywords",
+        num_digits:           "Digit Count",
+        path_depth:           "Path Depth",
+    };
+
+    async function scanURL() {
+        const url = document.getElementById("urlInput").value.trim();
+        if (!url) { alert("Please enter a URL."); return; }
+
+        // Show loading, hide result
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("result").style.display  = "none";
+        document.getElementById("scanBtn").disabled = true;
+
+        try {
+            const response = await fetch("/scan", {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ url }),
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                alert("Error: " + data.error);
+                return;
+            }
+
+            displayResult(data);
+
+        } catch (err) {
+            alert("Something went wrong. Is the server running?");
+        } finally {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("scanBtn").disabled = false;
+        }
+    }
+
+    function displayResult(data) {
+        const isPhishing = data.prediction === "phishing";
+
+        // Verdict
+        const verdict = document.getElementById("verdict");
+        verdict.textContent = isPhishing ? "🔴 PHISHING DETECTED" : "🟢 LEGITIMATE";
+        verdict.className   = "verdict " + (isPhishing ? "phishing" : "legitimate");
+
+        // Scores
+        document.getElementById("riskScore").textContent  = data.risk_score + "%";
+        document.getElementById("confidence").textContent = data.confidence + "%";
+
+        // Risk bar colour based on level
+        const bar   = document.getElementById("riskBar");
+        bar.style.width = data.risk_score + "%";
+        bar.style.background =
+            data.risk_score < 30 ? "#00e676" :
+            data.risk_score < 70 ? "#ffab00" : "#ff5252";
+
+        // Features table
+        const table = document.getElementById("featuresTable");
+        table.innerHTML = "";
+        for (const [key, value] of Object.entries(data.features)) {
+            const label = FEATURE_LABELS[key] || key;
+            const display =
+                key === "has_ip" || key === "has_https" || key === "has_suspicious_words"
+                    ? (value === 1 ? "Yes" : "No")
+                    : value;
+            table.innerHTML += `
+                <tr>
+                    <td>${label}</td>
+                    <td>${display}</td>
+                </tr>`;
+        }
+
+        document.getElementById("result").style.display = "block";
+    }
+
+    // Allow pressing Enter to scan
+    document.getElementById("urlInput")
+        .addEventListener("keydown", e => { if (e.key === "Enter") scanURL(); });
+</script>
+
+</body>
+</html>
